@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+  <link rel="stylesheet" type="text/css" href="libs/bootstrap/css/bootstrap.min.css" />
+  <link rel="stylesheet" type="text/css" href="libs/datatables/datatables.min.css" />
+  <link rel="stylesheet" type="text/css" href="libs/datatables/bootstrap/css/dataTables.bootstrap.min.css" />
+</head>
+<body>
+  <div class="container-fluid">
+    <div class="wrapper">
+      <div class="row">
+        <div class="col-xs-12">
+          <form class="form-inline">
+            <div class="form-group">
+              <label class="sr-only" for="what">Business Name:</label>
+              <input type="text" class="form-control" id="what" name="what" value="barber" placeholder="barber" required />
+            </div>
+            <div class="form-group">
+              <label class="sr-only" for="pwd">Location:</label>
+              <input type="text" class="form-control" id="where" name="where" value="Kansas"
+                     placeholder="City, State, Country" required />
+            </div>
+            <button type="button" class="btn btn-default btn-search">Search</button>
+          </form>
+
+          <div class="row">
+            <div class="col-xs-12 result">
+              <table class="table display" id="example">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Address</th>
+                    <th>Latitude</th>
+                    <th>Phone</th>
+                  </tr>
+                </thead>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="libs/jquery/jquery.min.js"></script>
+  <script src="libs/bootstrap/js/bootstrap.min.js"></script>
+  <script src="libs/datatables/datatables.min.js"></script>
+  <script src="libs/datatables/bootstrap/js/dataTables.bootstrap.min.js"></script>
+  <script>
+    $(document).ready(function () {
+        var initialized = false;
+      $('.btn-search').click(function () {
+        var data = {
+          'what': $('input[name="what"]').val(),
+          'where': $('input[name="where"]').val(),
+          'fmt': 'JSON',
+          'lang': 'en',
+          'UID': '127.0.0.1',
+          'apikey': 'd8epz8npygjxtgaxrdqhyem4'
+        };
+
+        $.ajax({
+          url: 'http://api.sandbox.yellowapi.com/FindBusiness/',
+          data: data,
+          success: function (response) {
+            if(response && response.listings.length) {
+              appendData(response.listings);
+            }
+          },
+          dataType: 'json',
+          method: 'GET',
+          error: function (err) {
+            console.log(err);
+          }
+        });
+      });
+
+      function appendData(source) {
+          if (initialized) {
+              $("#example").DataTable().clear().rows.add(source).draw();
+          } else {
+              initialized = true;
+              $('#example').DataTable( {
+                  data: source,
+                  columns: [
+                      { data: "id" },
+                      { data: "name" },
+                      { data: "address.street" },
+                      {
+                          data: function (data, type, row) {
+                              return data.geoCode.latitude + ", " + data.geoCode.longitude
+                          }
+                      },
+                      {data: 'phone.dispNum'}
+                  ]
+              });
+          }
+      }
+    });
+  </script>
+</body>
+</html>
